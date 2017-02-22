@@ -2,6 +2,50 @@ FROM openjdk:8-jdk
 
 RUN apt-get update && apt-get install -y git curl && rm -rf /var/lib/apt/lists/*
 
+# PHP STUFF
+# Reference: https://www.cyberciti.biz/faq/installing-php-7-on-debian-linux-8-jessie-wheezy-using-apt-get/
+RUN echo 'deb http://packages.dotdeb.org jessie all' >> /etc/apt/sources.list
+RUN echo 'deb-src http://packages.dotdeb.org jessie all' >> /etc/apt/sources.list
+RUN curl -OL https://www.dotdeb.org/dotdeb.gpg
+RUN apt-key add dotdeb.gpg
+RUN rm dotdeb.gpg
+RUN apt-get update -y
+RUN apt-get install -y php7.0 php7.0-fpm php7.0-gd php7.0-mysql
+
+RUN curl -OL https://phar.phpunit.de/phpunit-6.0.phar
+RUN chmod +x phpunit-6.0.phar
+RUN mv phpunit-6.0.phar /usr/local/bin/phpunit
+
+RUN curl -OL https://squizlabs.github.io/PHP_CodeSniffer/phpcs.phar
+RUN chmod +x phpcs.phar
+RUN mv phpcs.phar /usr/local/bin/phpcs
+
+RUN curl -OL https://squizlabs.github.io/PHP_CodeSniffer/phpcbf.phar
+RUN chmod +x phpcbf.phar
+RUN mv phpcbf.phar /usr/local/bin/phpcbf
+
+RUN curl -OL https://phar.phpunit.de/phploc.phar
+RUN chmod +x phploc.phar
+RUN mv phploc.phar /usr/local/bin/phploc
+
+RUN curl -OL http://static.pdepend.org/php/latest/pdepend.phar
+RUN chmod +x pdepend.phar
+RUN mv pdepend.phar /usr/local/bin/pdepend
+
+RUN curl -OL http://static.phpmd.org/php/latest/phpmd.phar
+RUN chmod +x phpmd.phar
+RUN mv phpmd.phar /usr/local/bin/phpmd
+
+RUN curl -OL https://phar.phpunit.de/phpcpd.phar
+RUN chmod +x phpcpd.phar
+RUN mv phpcpd.phar /usr/local/bin/phpcpd
+
+RUN curl -OL http://phpdox.de/releases/phpdox.phar
+RUN chmod +x phpdox.phar
+RUN mv phpdox.phar /usr/local/bin/phpdox
+
+
+
 ENV JENKINS_HOME /var/jenkins_home
 ENV JENKINS_SLAVE_AGENT_PORT 50000
 
@@ -69,3 +113,5 @@ ENTRYPOINT ["/bin/tini", "--", "/usr/local/bin/jenkins.sh"]
 # from a derived Dockerfile, can use `RUN plugins.sh active.txt` to setup /usr/share/jenkins/ref/plugins from a support bundle
 COPY plugins.sh /usr/local/bin/plugins.sh
 COPY install-plugins.sh /usr/local/bin/install-plugins.sh
+
+RUN install-plugins.sh checkstyle cloverphp crap4j dry htmlpublisher jdepend plot pmd violations warnings xunit
