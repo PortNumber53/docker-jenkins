@@ -2,6 +2,9 @@ FROM openjdk:8-jdk
 
 RUN apt-get update && apt-get install -y git curl && rm -rf /var/lib/apt/lists/*
 
+# Install ANT
+RUN apt-get update && apt-get install -y ant && rm -rf /var/lib/apt/lists/*
+
 # PHP STUFF
 # Reference: https://www.cyberciti.biz/faq/installing-php-7-on-debian-linux-8-jessie-wheezy-using-apt-get/
 RUN echo 'deb http://packages.dotdeb.org jessie all' >> /etc/apt/sources.list
@@ -114,4 +117,4 @@ ENTRYPOINT ["/bin/tini", "--", "/usr/local/bin/jenkins.sh"]
 COPY plugins.sh /usr/local/bin/plugins.sh
 COPY install-plugins.sh /usr/local/bin/install-plugins.sh
 
-RUN install-plugins.sh checkstyle cloverphp crap4j dry htmlpublisher jdepend plot pmd violations warnings xunit
+RUN install-plugins.sh checkstyle cloverphp crap4j dry htmlpublisher jdepend plot pmd violations warnings xunit shared-workspace
