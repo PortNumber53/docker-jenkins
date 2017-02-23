@@ -10,10 +10,23 @@ RUN apt-get update && apt-get install -y ant && rm -rf /var/lib/apt/lists/*
 RUN echo 'deb http://packages.dotdeb.org jessie all' >> /etc/apt/sources.list
 RUN echo 'deb-src http://packages.dotdeb.org jessie all' >> /etc/apt/sources.list
 RUN curl -OL https://www.dotdeb.org/dotdeb.gpg
-RUN apt-key add dotdeb.gpg
-RUN rm dotdeb.gpg
-RUN apt-get update -y
-RUN apt-get install -y php7.0 php7.0-fpm php7.0-gd php7.0-mysql
+RUN apt-key add dotdeb.gpg \
+    && rm dotdeb.gpg
+RUN apt-get update -y \
+    && apt-get install -y \
+        php7.0 \
+        php7.0-fpm \
+        php7.0-gd \
+        php7.0-mysql \
+        php7.0-xsl \
+        php7.0-xml \
+        php7.0-bcmath \
+        php7.0-bz2 \
+        php7.0-intl \
+        php7.0-pgsql \
+        php7.0-redis \
+        php7.0-curl \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN curl -OL https://phar.phpunit.de/phpunit-6.0.phar
 RUN chmod +x phpunit-6.0.phar
