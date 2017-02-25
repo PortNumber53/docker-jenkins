@@ -3,14 +3,21 @@ FROM openjdk:8-jdk
 RUN apt-get update && apt-get install -y git curl && rm -rf /var/lib/apt/lists/*
 
 # Install ANT
-RUN apt-get update && apt-get install -y ant && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y \
+    ant \
+    git-core \
+    curl \
+    build-essential \
+    openssl \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # PHP STUFF
 # Reference: https://www.cyberciti.biz/faq/installing-php-7-on-debian-linux-8-jessie-wheezy-using-apt-get/
 RUN echo 'deb http://packages.dotdeb.org jessie all' >> /etc/apt/sources.list
 RUN echo 'deb-src http://packages.dotdeb.org jessie all' >> /etc/apt/sources.list
-RUN curl -OL https://www.dotdeb.org/dotdeb.gpg
-RUN apt-key add dotdeb.gpg \
+RUN curl -OL https://www.dotdeb.org/dotdeb.gpg \
+    && apt-key add dotdeb.gpg \
     && rm dotdeb.gpg
 RUN apt-get update -y \
     && apt-get install -y \
@@ -23,43 +30,76 @@ RUN apt-get update -y \
         php7.0-bcmath \
         php7.0-bz2 \
         php7.0-intl \
+        php7.0-mbstring \
         php7.0-pgsql \
         php7.0-redis \
         php7.0-curl \
+        php7.0-xdebug \
     && rm -rf /var/lib/apt/lists/*
 
-RUN curl -OL https://phar.phpunit.de/phpunit-6.0.phar
-RUN chmod +x phpunit-6.0.phar
-RUN mv phpunit-6.0.phar /usr/local/bin/phpunit
+# RUN curl -OL "http://xdebug.org/files/xdebug-2.4.0.tgz"
+# RUN tar -xf xdebug-2.4.0.tgz
+# RUN cd xdebug-2.4.0/
+# RUN phpize
+# RUN ./configure
+# RUN make && make install
+# RUN echo "zend_extension=xdebug.so" > /etc/php/7.0/mods-available/xdebug.ini
+# RUN ln -sf /etc/php/7.0/mods-available/xdebug.ini /etc/php/7.0/fpm/conf.d/20-xdebug.ini
+# RUN ln -sf /etc/php/7.0/mods-available/xdebug.ini /etc/php/7.0/cli/conf.d/20-xdebug.ini
+# RUN cd ..
 
-RUN curl -OL https://squizlabs.github.io/PHP_CodeSniffer/phpcs.phar
-RUN chmod +x phpcs.phar
-RUN mv phpcs.phar /usr/local/bin/phpcs
+RUN curl -OL https://phar.phpunit.de/phpunit-6.0.phar \
+    && chmod +x phpunit-6.0.phar \
+    && mv phpunit-6.0.phar /usr/local/bin/phpunit
 
-RUN curl -OL https://squizlabs.github.io/PHP_CodeSniffer/phpcbf.phar
-RUN chmod +x phpcbf.phar
-RUN mv phpcbf.phar /usr/local/bin/phpcbf
+RUN curl -OL https://squizlabs.github.io/PHP_CodeSniffer/phpcs.phar \
+    && chmod +x phpcs.phar \
+    && mv phpcs.phar /usr/local/bin/phpcs
 
-RUN curl -OL https://phar.phpunit.de/phploc.phar
-RUN chmod +x phploc.phar
-RUN mv phploc.phar /usr/local/bin/phploc
+RUN curl -OL https://squizlabs.github.io/PHP_CodeSniffer/phpcbf.phar \
+    && chmod +x phpcbf.phar \
+    && mv phpcbf.phar /usr/local/bin/phpcbf
 
-RUN curl -OL http://static.pdepend.org/php/latest/pdepend.phar
-RUN chmod +x pdepend.phar
-RUN mv pdepend.phar /usr/local/bin/pdepend
+RUN curl -OL https://phar.phpunit.de/phploc.phar \
+    && chmod +x phploc.phar \
+    && mv phploc.phar /usr/local/bin/phploc
 
-RUN curl -OL http://static.phpmd.org/php/latest/phpmd.phar
-RUN chmod +x phpmd.phar
-RUN mv phpmd.phar /usr/local/bin/phpmd
+RUN curl -OL http://static.pdepend.org/php/latest/pdepend.phar \
+    && chmod +x pdepend.phar \
+    && mv pdepend.phar /usr/local/bin/pdepend
 
-RUN curl -OL https://phar.phpunit.de/phpcpd.phar
-RUN chmod +x phpcpd.phar
-RUN mv phpcpd.phar /usr/local/bin/phpcpd
+RUN curl -OL http://static.phpmd.org/php/latest/phpmd.phar \
+    && chmod +x phpmd.phar \
+    && mv phpmd.phar /usr/local/bin/phpmd
 
-RUN curl -OL http://phpdox.de/releases/phpdox.phar
-RUN chmod +x phpdox.phar
-RUN mv phpdox.phar /usr/local/bin/phpdox
+RUN curl -OL https://phar.phpunit.de/phpcpd.phar \
+    && chmod +x phpcpd.phar \
+    && mv phpcpd.phar /usr/local/bin/phpcpd
 
+RUN curl -OL http://phpdox.de/releases/phpdox.phar \
+    && chmod +x phpdox.phar \
+    && mv phpdox.phar /usr/local/bin/phpdox
+
+RUN curl -OL https://getcomposer.org/composer.phar \
+    && chmod +x composer.phar \
+    && mv composer.phar /usr/local/bin/composer
+
+RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
+RUN apt-get update && apt-get install -y git nodejs && rm -rf /var/lib/apt/lists/*
+
+#RUN git clone https://github.com/nodejs/node.git \
+#    && cd node \
+#    && git checkout master \
+#    && ./configure \
+#    && make \
+#    && make install \
+#    && cd .. \
+#    && rm -rf node
+
+RUN curl https://www.npmjs.com/install.sh | sh
+
+# Angular CLI
+RUN npm install -g @angular/cli
 
 
 ENV JENKINS_HOME /var/jenkins_home
@@ -130,4 +170,4 @@ ENTRYPOINT ["/bin/tini", "--", "/usr/local/bin/jenkins.sh"]
 COPY plugins.sh /usr/local/bin/plugins.sh
 COPY install-plugins.sh /usr/local/bin/install-plugins.sh
 
-RUN install-plugins.sh checkstyle cloverphp crap4j dry htmlpublisher jdepend plot pmd violations warnings xunit shared-workspace
+RUN install-plugins.sh checkstyle cloverphp crap4j dry htmlpublisher jdepend plot pmd violations warnings xunit shared-workspace envinject
