@@ -31,6 +31,7 @@ RUN apt-get update -y \
         php7.0-bz2 \
         php7.0-intl \
         php7.0-mbstring \
+        php7.0-mongodb \
         php7.0-pgsql \
         php7.0-redis \
         php7.0-curl \
@@ -136,10 +137,10 @@ COPY init.groovy /usr/share/jenkins/ref/init.groovy.d/tcp-slave-agent-port.groov
 
 # jenkins version being bundled in this docker image
 ARG JENKINS_VERSION
-ENV JENKINS_VERSION ${JENKINS_VERSION:-2.32.2}
+ENV JENKINS_VERSION ${JENKINS_VERSION:-2.32.3}
 
 # jenkins.war checksum, download will be validated using it
-ARG JENKINS_SHA=f495a08733f69b1845fd2d9b3a46482adb6e6cee
+ARG JENKINS_SHA=a25b9a314ca9e76f9673da7309e1882e32674223
 
 # Can be used to customize where jenkins.war get downloaded from
 ARG JENKINS_URL=https://repo.jenkins-ci.org/public/org/jenkins-ci/main/jenkins-war/${JENKINS_VERSION}/jenkins-war-${JENKINS_VERSION}.war
@@ -170,4 +171,18 @@ ENTRYPOINT ["/bin/tini", "--", "/usr/local/bin/jenkins.sh"]
 COPY plugins.sh /usr/local/bin/plugins.sh
 COPY install-plugins.sh /usr/local/bin/install-plugins.sh
 
-RUN install-plugins.sh checkstyle cloverphp crap4j dry htmlpublisher jdepend plot pmd violations warnings xunit shared-workspace envinject
+RUN install-plugins.sh \
+        checkstyle \
+        cloverphp \
+        crap4j \
+        dry \
+        htmlpublisher \
+        jdepend \
+        plot \
+        pmd \
+        violations \
+        warnings \
+        xunit \
+        shared-workspace \
+        envinject \
+        bitbucket
