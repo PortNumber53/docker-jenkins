@@ -1,6 +1,6 @@
 FROM openjdk:8-jdk
 
-RUN apt-get update && apt-get install -y git curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y git curl rsync && rm -rf /var/lib/apt/lists/*
 
 # Install ANT
 RUN apt-get update && apt-get install -y \
@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     openssl \
     libssl-dev \
+    rsync \
     && rm -rf /var/lib/apt/lists/*
 
 # PHP STUFF
@@ -102,6 +103,11 @@ RUN curl https://www.npmjs.com/install.sh | sh
 # Angular CLI
 RUN npm install -g @angular/cli
 
+# Bower
+RUN npm install bower -g
+
+# Gulp
+RUN npm install gulp -g
 
 ENV JENKINS_HOME /var/jenkins_home
 ENV JENKINS_SLAVE_AGENT_PORT 50000
@@ -185,4 +191,6 @@ RUN install-plugins.sh \
         xunit \
         shared-workspace \
         envinject \
-        bitbucket
+        bitbucket \
+        build-timestamp
+
