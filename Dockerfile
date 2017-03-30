@@ -86,7 +86,7 @@ RUN curl -OL https://getcomposer.org/composer.phar \
     && chmod +x composer.phar \
     && mv composer.phar /usr/local/bin/composer
 
-RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_7.x | bash -
 RUN apt-get update && apt-get install -y git nodejs && rm -rf /var/lib/apt/lists/*
 
 #RUN git clone https://github.com/nodejs/node.git \
