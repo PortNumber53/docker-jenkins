@@ -37,6 +37,7 @@ RUN apt-get update -y \
         php7.0-redis \
         php7.0-curl \
         php7.0-xdebug \
+        php7.0-zip \
     && rm -rf /var/lib/apt/lists/*
 
 # RUN curl -OL "http://xdebug.org/files/xdebug-2.4.0.tgz"
