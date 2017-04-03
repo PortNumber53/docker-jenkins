@@ -87,6 +87,11 @@ RUN curl -OL https://getcomposer.org/composer.phar \
     && chmod +x composer.phar \
     && mv composer.phar /usr/local/bin/composer
 
+# Install Codeception
+RUN curl -o codecept.phar http://codeception.com/codecept.phar \
+    && chmod +x codecept.phar \
+    && mv codecept.phar /usr/local/bin/codecept
+
 RUN curl -sL https://deb.nodesource.com/setup_7.x | bash -
 RUN apt-get update && apt-get install -y git nodejs && rm -rf /var/lib/apt/lists/*
 
@@ -179,6 +184,7 @@ COPY plugins.sh /usr/local/bin/plugins.sh
 COPY install-plugins.sh /usr/local/bin/install-plugins.sh
 
 RUN install-plugins.sh \
+        ansicolor \
         checkstyle \
         cloverphp \
         crap4j \
