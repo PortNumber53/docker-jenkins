@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     git-core \
     curl \
     build-essential \
+    mysql-client \
     openssl \
     libssl-dev \
     rsync \
