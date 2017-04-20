@@ -116,6 +116,9 @@ RUN npm install bower -g
 # Gulp
 RUN npm install gulp -g
 
+# Grunt
+RUN npm install grunt-cli -g
+
 ENV JENKINS_HOME /var/jenkins_home
 ENV JENKINS_SLAVE_AGENT_PORT 50000
 
