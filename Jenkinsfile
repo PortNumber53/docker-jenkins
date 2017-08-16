@@ -10,12 +10,15 @@ node {
             checkout scm
         }
 
+	stage('Build') {
+	    sh 'docker build -t portnumber53/docker-jenkins:testing .'
+	}
+
+	stage('Push') {
+	   sh 'docker push portnumber53/docker-jenkins:testing'
+	}
 
         stage('Cleanup'){
-
-            echo 'prune and cleanup'
-            sh 'npm prune'
-            sh 'rm node_modules -rf'
 
             mail body: 'project build successful',
                     from: 'grimlock@portnumber53.com',
