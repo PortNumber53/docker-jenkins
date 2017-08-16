@@ -12,15 +12,16 @@ RUN apt-get update && apt-get install -y \
     openssl \
     libssl-dev \
     rsync \
+    software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 
 # PHP STUFF
 # Reference: https://www.cyberciti.biz/faq/installing-php-7-on-debian-linux-8-jessie-wheezy-using-apt-get/
-RUN echo 'deb http://packages.dotdeb.org jessie all' >> /etc/apt/sources.list
-RUN echo 'deb-src http://packages.dotdeb.org jessie all' >> /etc/apt/sources.list
-RUN curl -OL https://www.dotdeb.org/dotdeb.gpg \
-    && apt-key add dotdeb.gpg \
-    && rm dotdeb.gpg
+#RUN echo 'deb http://packages.dotdeb.org stretch all' >> /etc/apt/sources.list
+#RUN echo 'deb-src http://packages.dotdeb.org stretch all' >> /etc/apt/sources.list
+#RUN curl -OL https://www.dotdeb.org/dotdeb.gpg \
+#    && apt-key add dotdeb.gpg \
+#    && rm dotdeb.gpg
 RUN apt-get update -y \
     && apt-get install -y \
         php7.0 \
@@ -93,8 +94,10 @@ RUN curl -o codecept.phar http://codeception.com/codecept.phar \
     && chmod +x codecept.phar \
     && mv codecept.phar /usr/local/bin/codecept
 
-RUN curl -sL https://deb.nodesource.com/setup_7.x | bash -
-RUN apt-get update && apt-get install -y git nodejs && rm -rf /var/lib/apt/lists/*
+RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
+RUN apt-get update -y \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
 
 #RUN git clone https://github.com/nodejs/node.git \
 #    && cd node \
@@ -105,19 +108,26 @@ RUN apt-get update && apt-get install -y git nodejs && rm -rf /var/lib/apt/lists
 #    && cd .. \
 #    && rm -rf node
 
-RUN curl https://www.npmjs.com/install.sh | sh
+#RUN curl https://www.npmjs.com/install.sh | sh
 
-# Angular CLI
-RUN npm install -g @angular/cli
+# fix npm - not the latest version installed by apt-get
+#RUN npm install -g npm
+#RUN npm install -g yo grunt-cli bower express
+
+
+# Angular CLI ( https://github.com/nodejs/node-gyp/issues/454 )
+RUN npm install -g node-gyp \
+    && npm install --unsafe-perm -g @angular/cli@latest
 
 # Bower
-RUN npm install bower -g
+#RUN npm install bower -g
 
 # Gulp
+RUN npm install gulp-cli -g
 RUN npm install gulp -g
 
 # Grunt
-RUN npm install grunt-cli -g
+#RUN npm install grunt-cli -g
 
 ENV JENKINS_HOME /var/jenkins_home
 ENV JENKINS_SLAVE_AGENT_PORT 50000
@@ -203,5 +213,5 @@ RUN install-plugins.sh \
         shared-workspace \
         envinject \
         bitbucket \
-        build-timestamp
-
+        build-timestamp \
+        workflow-aggregator
