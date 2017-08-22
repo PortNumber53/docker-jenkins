@@ -94,7 +94,11 @@ RUN curl -o codecept.phar http://codeception.com/codecept.phar \
     && chmod +x codecept.phar \
     && mv codecept.phar /usr/local/bin/codecept
 
-RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
+
+#RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
+
+
 RUN apt-get update -y \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
@@ -112,7 +116,7 @@ RUN apt-get update -y \
 
 # fix npm - not the latest version installed by apt-get
 #RUN npm install -g npm
-#RUN npm install -g yo grunt-cli bower express
+RUN npm install -g yo grunt-cli bower express
 
 
 # Angular CLI ( https://github.com/nodejs/node-gyp/issues/454 )
@@ -120,7 +124,7 @@ RUN npm install -g node-gyp \
     && npm install --unsafe-perm -g @angular/cli@latest
 
 # Bower
-#RUN npm install bower -g
+RUN npm install bower -g
 
 # Gulp
 RUN npm install gulp-cli -g
