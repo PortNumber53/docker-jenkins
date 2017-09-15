@@ -5,12 +5,16 @@ RUN apt-get update && apt-get install -y git curl rsync && rm -rf /var/lib/apt/l
 # Install ANT
 RUN apt-get update && apt-get install -y \
     ant \
-    git-core \
-    curl \
+    apt-transport-https \
     build-essential \
+    ca-certificates \
+    curl \
+    docker \
+    git-core \
+    gnupg2 \
+    libssl-dev \
     mysql-client \
     openssl \
-    libssl-dev \
     rsync \
     software-properties-common \
     && rm -rf /var/lib/apt/lists/*
@@ -133,6 +137,15 @@ RUN npm install gulp -g
 # Grunt
 #RUN npm install grunt-cli -g
 
+RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
+RUN add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/debian \
+   $(lsb_release -cs) \
+   stable"
+RUN apt-get update && apt-get install -y \
+    docker-ce && \
+    rm -rf /var/lib/apt/lists/*
+
 ENV JENKINS_HOME /var/jenkins_home
 ENV JENKINS_SLAVE_AGENT_PORT 50000
 
@@ -145,7 +158,7 @@ ARG gid=1000
 # If you bind mount a volume from the host or a data container,
 # ensure you use the same uid
 RUN groupadd -g ${gid} ${group} \
-    && useradd -d "$JENKINS_HOME" -u ${uid} -g ${gid} -m -s /bin/bash ${user}
+    && useradd -d "$JENKINS_HOME" -u ${uid} -g ${gid} -G docker -m -s /bin/bash ${user}
 
 # Jenkins home directory is a volume, so configuration and build history
 # can be persisted and survive image upgrades
@@ -160,17 +173,18 @@ ENV TINI_VERSION 0.14.0
 ENV TINI_SHA 6c41ec7d33e857d4779f14d9c74924cab0c7973485d2972419a3b7c7620ff5fd
 
 # Use tini as subreaper in Docker container to adopt zombie processes 
-RUN curl -fsSL https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-static-amd64 -o /bin/tini && chmod +x /bin/tini \
-  && echo "$TINI_SHA  /bin/tini" | sha256sum -c -
+RUN curl -fsSL https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-static-amd64 -o \
+    /bin/tini && chmod +x /bin/tini \
+    && echo "$TINI_SHA  /bin/tini" | sha256sum -c -
 
 COPY init.groovy /usr/share/jenkins/ref/init.groovy.d/tcp-slave-agent-port.groovy
 
 # jenkins version being bundled in this docker image
 ARG JENKINS_VERSION
-ENV JENKINS_VERSION ${JENKINS_VERSION:-2.75}
+ENV JENKINS_VERSION ${JENKINS_VERSION:-2.78}
 
 # jenkins.war checksum, download will be validated using it
-ARG JENKINS_SHA=56cc5d3152ed7d4dffa1fd5bfbebd1b91a71724dfd2bc318e649d9a7f3e601ef
+ARG JENKINS_SHA=9d8ce9653d7a1ada2071ad9688ba7938e1e0672586e893e578dbfecdff725df6
 
 # Can be used to customize where jenkins.war get downloaded from
 ARG JENKINS_URL=https://repo.jenkins-ci.org/public/org/jenkins-ci/main/jenkins-war/${JENKINS_VERSION}/jenkins-war-${JENKINS_VERSION}.war
@@ -219,3 +233,5 @@ RUN install-plugins.sh \
         bitbucket \
         build-timestamp \
         workflow-aggregator
+
+
