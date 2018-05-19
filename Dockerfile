@@ -1,19 +1,65 @@
-FROM base/archlinux
-#openjdk:10-jdk
+FROM openjdk:8-jdk
 
+RUN apt-get update && apt-get install -y git curl rsync && rm -rf /var/lib/apt/lists/*
 
-RUN pacman -Syu --noconfirm jdk8-openjdk
+# Install ANT
+RUN apt-get update && apt-get install -y \
+    ant \
+    apt-transport-https \
+    build-essential \
+    ca-certificates \
+    curl \
+    docker \
+    git-core \
+    gnupg2 \
+    libssl-dev \
+    mysql-client \
+    openssl \
+    rsync \
+    software-properties-common \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN archlinux-java set java-8-openjdk
+# PHP STUFF
+# Reference: https://www.cyberciti.biz/faq/installing-php-7-on-debian-linux-8-jessie-wheezy-using-apt-get/
+#RUN echo 'deb http://packages.dotdeb.org stretch all' >> /etc/apt/sources.list
+#RUN echo 'deb-src http://packages.dotdeb.org stretch all' >> /etc/apt/sources.list
+#RUN curl -OL https://www.dotdeb.org/dotdeb.gpg \
+#    && apt-key add dotdeb.gpg \
+#    && rm dotdeb.gpg
+RUN apt-get update -y \
+    && apt-get install -y \
+        php7.0 \
+        php7.0-fpm \
+        php7.0-gd \
+        php7.0-mysql \
+        php7.0-xsl \
+        php7.0-xml \
+        php7.0-bcmath \
+        php7.0-bz2 \
+        php7.0-intl \
+        php7.0-mbstring \
+        php7.0-mongodb \
+        php7.0-pgsql \
+        php7.0-redis \
+        php7.0-curl \
+        php7.0-xdebug \
+        php7.0-zip \
+    && rm -rf /var/lib/apt/lists/*
 
-#RUN pacman -Syu --noconfirm jenkins
-RUN pacman -Syu --noconfirm unzip ttf-dejavu git openssh
+# RUN curl -OL "http://xdebug.org/files/xdebug-2.4.0.tgz"
+# RUN tar -xf xdebug-2.4.0.tgz
+# RUN cd xdebug-2.4.0/
+# RUN phpize
+# RUN ./configure
+# RUN make && make install
+# RUN echo "zend_extension=xdebug.so" > /etc/php/7.0/mods-available/xdebug.ini
+# RUN ln -sf /etc/php/7.0/mods-available/xdebug.ini /etc/php/7.0/fpm/conf.d/20-xdebug.ini
+# RUN ln -sf /etc/php/7.0/mods-available/xdebug.ini /etc/php/7.0/cli/conf.d/20-xdebug.ini
+# RUN cd ..
 
-RUN pacman -Syu --noconfirm php php-gd php-pgsql xdebug php-imap php-sqlite php-xsl apache-ant
-
-RUN curl -OL https://phar.phpunit.de/phpunit-6.phar \
-    && chmod +x phpunit-6.phar \
-    && mv phpunit-6.phar /usr/local/bin/phpunit
+RUN curl -OL https://phar.phpunit.de/phpunit-6.0.phar \
+    && chmod +x phpunit-6.0.phar \
+    && mv phpunit-6.0.phar /usr/local/bin/phpunit
 
 RUN curl -OL https://squizlabs.github.io/PHP_CodeSniffer/phpcs.phar \
     && chmod +x phpcs.phar \
@@ -52,8 +98,30 @@ RUN curl -o codecept.phar http://codeception.com/codecept.phar \
     && chmod +x codecept.phar \
     && mv codecept.phar /usr/local/bin/codecept
 
-RUN pacman -Syu --noconfirm nodejs npm
+
+#RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
+
+
+RUN apt-get update -y \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+#RUN git clone https://github.com/nodejs/node.git \
+#    && cd node \
+#    && git checkout master \
+#    && ./configure \
+#    && make \
+#    && make install \
+#    && cd .. \
+#    && rm -rf node
+
+#RUN curl https://www.npmjs.com/install.sh | sh
+
+# fix npm - not the latest version installed by apt-get
+#RUN npm install -g npm
 RUN npm install -g yo grunt-cli bower express
+
 
 # Angular CLI ( https://github.com/nodejs/node-gyp/issues/454 )
 RUN npm install -g node-gyp \
@@ -66,25 +134,17 @@ RUN npm install bower -g
 RUN npm install gulp-cli -g
 RUN npm install gulp -g
 
+# Grunt
+#RUN npm install grunt-cli -g
 
-
-# Jenkins home directory is a volume, so configuration and build history
-# can be persisted and survive image upgrades
-VOLUME /var/jenkins_home
-
-# `/usr/share/jenkins/ref/` contains all reference configuration we want
-# to set on a fresh new installation. Use it to bundle additional plugins
-# or config file with your custom jenkins Docker image.
-RUN mkdir -p /usr/share/jenkins/ref/init.groovy.d
-
-
-ENV JENKINS_UC https://updates.jenkins.io
-RUN chown -R ${user} "$JENKINS_HOME" /usr/share/jenkins/ref
-
-
-
-
-
+RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
+RUN add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/debian \
+   $(lsb_release -cs) \
+   stable"
+RUN apt-get update && apt-get install -y \
+    docker-ce && \
+    rm -rf /var/lib/apt/lists/*
 
 ENV JENKINS_HOME /var/jenkins_home
 ENV JENKINS_SLAVE_AGENT_PORT 50000
@@ -98,7 +158,16 @@ ARG gid=1000
 # If you bind mount a volume from the host or a data container,
 # ensure you use the same uid
 RUN groupadd -g ${gid} ${group} \
-    && useradd -d "$JENKINS_HOME" -u ${uid} -g ${gid} -m -s /bin/bash ${user}
+    && useradd -d "$JENKINS_HOME" -u ${uid} -g ${gid} -G docker -m -s /bin/bash ${user}
+
+# Jenkins home directory is a volume, so configuration and build history
+# can be persisted and survive image upgrades
+VOLUME /var/jenkins_home
+
+# `/usr/share/jenkins/ref/` contains all reference configuration we want
+# to set on a fresh new installation. Use it to bundle additional plugins
+# or config file with your custom jenkins Docker image.
+RUN mkdir -p /usr/share/jenkins/ref/init.groovy.d
 
 ENV TINI_VERSION 0.14.0
 ENV TINI_SHA 6c41ec7d33e857d4779f14d9c74924cab0c7973485d2972419a3b7c7620ff5fd
@@ -125,8 +194,8 @@ ARG JENKINS_URL=https://repo.jenkins-ci.org/public/org/jenkins-ci/main/jenkins-w
 RUN curl -fsSL ${JENKINS_URL} -o /usr/share/jenkins/jenkins.war \
   && echo "${JENKINS_SHA}  /usr/share/jenkins/jenkins.war" | sha256sum -c -
 
-
-
+ENV JENKINS_UC https://updates.jenkins.io
+RUN chown -R ${user} "$JENKINS_HOME" /usr/share/jenkins/ref
 
 # for main web interface:
 EXPOSE 8080
@@ -136,6 +205,8 @@ EXPOSE 50000
 
 ENV COPY_REFERENCE_FILE_LOG $JENKINS_HOME/copy_reference_file.log
 
+USER ${user}
+
 COPY jenkins-support /usr/local/bin/jenkins-support
 COPY jenkins.sh /usr/local/bin/jenkins.sh
 ENTRYPOINT ["/bin/tini", "--", "/usr/local/bin/jenkins.sh"]
@@ -143,9 +214,6 @@ ENTRYPOINT ["/bin/tini", "--", "/usr/local/bin/jenkins.sh"]
 # from a derived Dockerfile, can use `RUN plugins.sh active.txt` to setup /usr/share/jenkins/ref/plugins from a support bundle
 COPY plugins.sh /usr/local/bin/plugins.sh
 COPY install-plugins.sh /usr/local/bin/install-plugins.sh
-
-
-
 
 RUN install-plugins.sh \
         ansicolor \
@@ -167,9 +235,3 @@ RUN install-plugins.sh \
         workflow-aggregator
 
 
-COPY enable-php-extension.sh /usr/local/bin/enable-php-extension.sh
-RUN enable-php-extension.sh
-
-
-
-USER ${user}
