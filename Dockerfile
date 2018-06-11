@@ -9,7 +9,7 @@ RUN archlinux-java set java-8-openjdk
 #RUN pacman -Syu --noconfirm jenkins
 RUN pacman -Syu --noconfirm unzip ttf-dejavu git openssh
 
-RUN pacman -Syu --noconfirm php php-gd php-pgsql xdebug php-imap php-sqlite php-xsl apache-ant
+RUN pacman -Syu --noconfirm base-devel php php-gd php-pgsql xdebug php-imap php-sqlite php-xsl apache-ant rsync binutils fakeroot
 
 RUN curl -OL https://phar.phpunit.de/phpunit-6.phar \
     && chmod +x phpunit-6.phar \
@@ -173,3 +173,14 @@ RUN enable-php-extension.sh
 
 
 USER ${user}
+
+RUN cd /tmp && curl -o /tmp/php-pear.tar.gz https://aur.archlinux.org/cgit/aur.git/snapshot/php-pear.tar.gz && tar -xvzf /tmp/php-pear.tar.gz && rm /tmp/php-pear.tar.gz && cd php-pear/ && makepkg && mv /tmp/php-pear/php-pear-1:1.10.5-1-any.pkg.tar.xz /tmp/php-pear-1:1.10.5-1-any.pkg.tar.xz && rm -rf /tmp/php-pear/
+
+USER root
+RUN pacman -U --noconfirm /tmp/php-pear-1:1.10.5-1-any.pkg.tar.xz && rm /tmp/php-pear-1:1.10.5-1-any.pkg.tar.xz
+
+RUN pecl install mongodb
+RUN echo "extension=mongodb.so" >> `php --ini | grep "Loaded Configuration" | sed -e "s|.*:\s*||"`
+
+USER ${user}
+
