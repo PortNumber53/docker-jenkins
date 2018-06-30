@@ -174,10 +174,12 @@ RUN enable-php-extension.sh
 
 USER ${user}
 
-RUN cd /tmp && curl -o /tmp/php-pear.tar.gz https://aur.archlinux.org/cgit/aur.git/snapshot/php-pear.tar.gz && tar -xvzf /tmp/php-pear.tar.gz && rm /tmp/php-pear.tar.gz && cd php-pear/ && makepkg && mv /tmp/php-pear/php-pear-1:1.10.5-1-any.pkg.tar.xz /tmp/php-pear-1:1.10.5-1-any.pkg.tar.xz && rm -rf /tmp/php-pear/
+RUN cd /tmp && curl -o /tmp/php-pear.tar.gz https://aur.archlinux.org/cgit/aur.git/snapshot/php-pear.tar.gz && tar -xvzf /tmp/php-pear.tar.gz && rm /tmp/php-pear.tar.gz && cd php-pear/ && sed -i 's#rm -rf ${pkgdir}/usr/share/pear/.{channels,depdb,depdblock,filemap,lock,registry}#rm -rf ${pkgdir}/.{channels,depdb,depdblock,filemap,lock,registry}#g' PKGBUILD &&  makepkg && mv /tmp/php-pear/php-pear-1:1.10.5-1-any.pkg.tar.xz /tmp/php-pear-1:1.10.5-1-any.pkg.tar.xz && rm -rf /tmp/php-pear/
 
 USER root
 RUN pacman -U --noconfirm /tmp/php-pear-1:1.10.5-1-any.pkg.tar.xz && rm /tmp/php-pear-1:1.10.5-1-any.pkg.tar.xz
+
+RUN pacman -Syu --noconfirm lftp
 
 RUN pecl install mongodb
 RUN echo "extension=mongodb.so" >> `php --ini | grep "Loaded Configuration" | sed -e "s|.*:\s*||"`
