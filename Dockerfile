@@ -112,10 +112,10 @@ COPY init.groovy /usr/share/jenkins/ref/init.groovy.d/tcp-slave-agent-port.groov
 
 # jenkins version being bundled in this docker image
 ARG JENKINS_VERSION
-ENV JENKINS_VERSION ${JENKINS_VERSION:-2.129}
+ENV JENKINS_VERSION ${JENKINS_VERSION:-2.155}
 
 # jenkins.war checksum, download will be validated using it
-ARG JENKINS_SHA=4198d547ea1df033066c9cb87256b63ce24124094a8592066b3756e2a89b55bf
+ARG JENKINS_SHA=034c6d63b55bf938c5d1bb532775d9aa18fb34bd65aad4e3e968325978be86b8
 
 # Can be used to customize where jenkins.war get downloaded from
 ARG JENKINS_URL=https://repo.jenkins-ci.org/public/org/jenkins-ci/main/jenkins-war/${JENKINS_VERSION}/jenkins-war-${JENKINS_VERSION}.war
@@ -174,10 +174,16 @@ RUN enable-php-extension.sh
 
 USER ${user}
 
-RUN cd /tmp && curl -o /tmp/php-pear.tar.gz https://aur.archlinux.org/cgit/aur.git/snapshot/php-pear.tar.gz && tar -xvzf /tmp/php-pear.tar.gz && rm /tmp/php-pear.tar.gz && cd php-pear/ && sed -i 's#rm -rf ${pkgdir}/usr/share/pear/.{channels,depdb,depdblock,filemap,lock,registry}#rm -rf ${pkgdir}/.{channels,depdb,depdblock,filemap,lock,registry}#g' PKGBUILD &&  makepkg && mv /tmp/php-pear/php-pear-1:1.10.5-1-any.pkg.tar.xz /tmp/php-pear-1:1.10.5-1-any.pkg.tar.xz && rm -rf /tmp/php-pear/
+RUN cd /tmp && curl -o /tmp/php-pear.tar.gz https://aur.archlinux.org/cgit/aur.git/snapshot/php-pear.tar.gz \
+  && tar -xvzf /tmp/php-pear.tar.gz \
+  && rm /tmp/php-pear.tar.gz && cd php-pear/ \
+  && sed -i 's#rm -rf ${pkgdir}/usr/share/pear/.{channels,depdb,depdblock,filemap,lock,registry}#rm -rf ${pkgdir}/.{channels,depdb,depdblock,filemap,lock,registry}#g' PKGBUILD \
+  && makepkg \
+  && mv /tmp/php-pear/php-pear-1:1.10.7-1-any.pkg.tar.xz /tmp/php-pear-any.pkg.tar.xz \
+  && rm -rf /tmp/php-pear/
 
 USER root
-RUN pacman -U --noconfirm /tmp/php-pear-1:1.10.5-1-any.pkg.tar.xz && rm /tmp/php-pear-1:1.10.5-1-any.pkg.tar.xz
+RUN pacman -U --noconfirm /tmp/php-pear-any.pkg.tar.xz && rm /tmp/php-pear-any.pkg.tar.xz
 
 RUN pacman -Syu --noconfirm lftp
 
