@@ -1,0 +1,5 @@
+USER=jenkins
+HOST_VOLUME=/storage/jenkins/
+PORT_WEB=48080
+SLAVE_PORT=50000
+CONTAINER_NAME=myjenkins

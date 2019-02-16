@@ -1,0 +1,16 @@
+[Unit]
+Description=Jenkins service
+After=docker.service
+
+[Service]
+EnvironmentFile=/etc/docker/docker-jenkins.conf
+PassEnvironment=USER HOST_VOLUME PORT_WEB SLAVE_PORT
+User=jenkins
+Type=simple
+ExecStop=/usr/bin/docker stop ${CONTAINER_NAME}
+ExecStopPost=/usr/bin/docker rm ${CONTAINER_NAME}
+ExecStart=/usr/bin/docker run --name=${CONTAINER_NAME} -v ${HOST_VOLUME}:/var/jenkins_home -p ${PORT_WEB}:8080 -p ${SLAVE_PORT}:50000 portnumber53/docker-jenkins
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target
