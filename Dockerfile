@@ -1,15 +1,31 @@
-FROM base/archlinux
-#openjdk:10-jdk
+FROM archlinux/base:latest
 
-
-RUN pacman -Syu --noconfirm jdk8-openjdk
+RUN pacman -Syu --noconfirm jdk8-openjdk \
+  && pacman --noconfirm -Scc
 
 RUN archlinux-java set java-8-openjdk
 
-#RUN pacman -Syu --noconfirm jenkins
-RUN pacman -Syu --noconfirm unzip ttf-dejavu git openssh
-
-RUN pacman -Syu --noconfirm base-devel php php-gd php-pgsql xdebug php-imap php-sqlite php-xsl apache-ant rsync binutils fakeroot
+RUN pacman -Syu --noconfirm \
+    base-devel \
+    lftp \
+    php \
+    php-gd \
+    php-pgsql \
+    xdebug \
+    php-imap \
+    php-sqlite \
+    php-xsl \
+    apache-ant \
+    rsync \
+    binutils \
+    fakeroot \
+    unzip \
+    ttf-dejavu \
+    git \
+    openssh \
+    nodejs \
+    npm \
+  && pacman --noconfirm -Scc
 
 RUN curl -OL https://phar.phpunit.de/phpunit-6.phar \
     && chmod +x phpunit-6.phar \
@@ -52,7 +68,6 @@ RUN curl -o codecept.phar http://codeception.com/codecept.phar \
     && chmod +x codecept.phar \
     && mv codecept.phar /usr/local/bin/codecept
 
-RUN pacman -Syu --noconfirm nodejs npm
 RUN npm install -g yo grunt-cli bower express
 
 # Angular CLI ( https://github.com/nodejs/node-gyp/issues/454 )
@@ -65,12 +80,6 @@ RUN npm install bower -g
 # Gulp
 RUN npm install gulp-cli -g
 RUN npm install gulp -g
-
-
-
-# Jenkins home directory is a volume, so configuration and build history
-# can be persisted and survive image upgrades
-VOLUME /var/jenkins_home
 
 # `/usr/share/jenkins/ref/` contains all reference configuration we want
 # to set on a fresh new installation. Use it to bundle additional plugins
@@ -112,10 +121,10 @@ COPY init.groovy /usr/share/jenkins/ref/init.groovy.d/tcp-slave-agent-port.groov
 
 # jenkins version being bundled in this docker image
 ARG JENKINS_VERSION
-ENV JENKINS_VERSION ${JENKINS_VERSION:-2.155}
+ENV JENKINS_VERSION ${JENKINS_VERSION:-2.164}
 
 # jenkins.war checksum, download will be validated using it
-ARG JENKINS_SHA=034c6d63b55bf938c5d1bb532775d9aa18fb34bd65aad4e3e968325978be86b8
+ARG JENKINS_SHA=8a5c34fce5ba91e9b9a72f550525ff28659171ee45f44dae2cc84aba47115e22
 
 # Can be used to customize where jenkins.war get downloaded from
 ARG JENKINS_URL=https://repo.jenkins-ci.org/public/org/jenkins-ci/main/jenkins-war/${JENKINS_VERSION}/jenkins-war-${JENKINS_VERSION}.war
@@ -126,13 +135,6 @@ RUN curl -fsSL ${JENKINS_URL} -o /usr/share/jenkins/jenkins.war \
   && echo "${JENKINS_SHA}  /usr/share/jenkins/jenkins.war" | sha256sum -c -
 
 
-
-
-# for main web interface:
-EXPOSE 8080
-
-# will be used by attached slave agents:
-EXPOSE 50000
 
 ENV COPY_REFERENCE_FILE_LOG $JENKINS_HOME/copy_reference_file.log
 
@@ -170,25 +172,43 @@ RUN install-plugins.sh \
 COPY enable-php-extension.sh /usr/local/bin/enable-php-extension.sh
 RUN enable-php-extension.sh
 
+RUN gpg --recv-key 72A321BAC245F175
 
-
+RUN chown -Rv ${user}:${group} ${JENKINS_HOME} | tee
 USER ${user}
+
+RUN ls -la ${JENKINS_HOME} | tee \
+  && mkdir -p ${JENKINS_HOME}/.gnupg  \
+  && ls -la /var/jenkins_home/.gnupg
+
+RUN gpg --recv-key 72A321BAC245F175
 
 RUN cd /tmp && curl -o /tmp/php-pear.tar.gz https://aur.archlinux.org/cgit/aur.git/snapshot/php-pear.tar.gz \
   && tar -xvzf /tmp/php-pear.tar.gz \
   && rm /tmp/php-pear.tar.gz && cd php-pear/ \
   && sed -i 's#rm -rf ${pkgdir}/usr/share/pear/.{channels,depdb,depdblock,filemap,lock,registry}#rm -rf ${pkgdir}/.{channels,depdb,depdblock,filemap,lock,registry}#g' PKGBUILD \
   && makepkg \
-  && mv /tmp/php-pear/php-pear-1:1.10.7-1-any.pkg.tar.xz /tmp/php-pear-any.pkg.tar.xz \
+  && mv /tmp/php-pear/php-pear-1\:1.10.12-2-any.pkg.tar.xz /tmp/php-pear-any.pkg.tar.xz \
   && rm -rf /tmp/php-pear/
 
 USER root
 RUN pacman -U --noconfirm /tmp/php-pear-any.pkg.tar.xz && rm /tmp/php-pear-any.pkg.tar.xz
 
-RUN pacman -Syu --noconfirm lftp
-
 RUN pecl install mongodb
 RUN echo "extension=mongodb.so" >> `php --ini | grep "Loaded Configuration" | sed -e "s|.*:\s*||"`
 
 USER ${user}
+
+
+
+# for main web interface:
+EXPOSE 8080
+
+# will be used by attached slave agents:
+EXPOSE 50000
+
+# Jenkins home directory is a volume, so configuration and build history
+# can be persisted and survive image upgrades
+# Moved to the end per this SO: https://stackoverflow.com/questions/26145351/why-doesnt-chown-work-in-dockerfile
+VOLUME /var/jenkins_home
 
