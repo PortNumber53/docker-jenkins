@@ -23,6 +23,7 @@ RUN pacman -Syu --noconfirm \
     ttf-dejavu \
     git \
     openssh \
+    mysql \
     nodejs \
     npm \
   && pacman --noconfirm -Scc
