@@ -164,7 +164,6 @@ RUN install-plugins.sh \
         warnings \
         xunit \
         shared-workspace \
-        envinject \
         bitbucket \
         build-timestamp \
         workflow-aggregator
